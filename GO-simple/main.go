@@ -3,9 +3,12 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type cidade struct {
@@ -15,34 +18,61 @@ type cidade struct {
 
 func main() {
 	fileCities := readCity()
-	createArrayOfCities(fileCities)
+	cidades := getArrayOfCities(fileCities)
+
+	calculateFitness(cidades)
 }
 
-func createArrayOfCities(fileCities *bufio.Reader) {
+func calculateFitness(cidades []cidade) {
 
-	line, err := Readln(fileCities)
-	var basenameOpts = []cidade{}
+	var length = len(cidades) - 2
+	var fitness float64
+	for index := 0; index <= length; index++ {
+		fitness += calculateDistanceCoordenate(cidades[index], cidades[index+1])
+	}
+	fitness += calculateDistanceCoordenate(cidades[length+1], cidades[0])
+
+	fmt.Print("Total ", fitness, "\n")
+
+}
+
+func calculateDistanceCoordenate(cidadeOrigem, cidadeDestino cidade) float64 {
+
+	return 6371 * math.Acos(math.Cos(math.Pi*(90-cidadeDestino.latitude)/180)*math.Cos((90-cidadeOrigem.latitude)*math.Pi/180)+math.Sin((90-cidadeDestino.latitude)*math.Pi/180)*math.Sin((90-cidadeOrigem.latitude)*math.Pi/180)*math.Cos((cidadeOrigem.longitude-cidadeDestino.longitude)*math.Pi/180))
+
+}
+
+func getArrayOfCities(fileCities *bufio.Reader) []cidade {
+
+	line, err := readLine(fileCities)
+	var cidades = []cidade{}
 	for err == nil {
-		id, latitude, longitude := convertLine(line)
-
-		cidade := cidade{id: id, latitude: latitude, longitude: longitude}
-
-		basenameOpts = append(basenameOpts, cidade)
-
-		line, err = Readln(fileCities)
+		cidades = addCity(cidades, line)
+		line, err = readLine(fileCities)
 	}
 
-	fmt.Println(basenameOpts[0])
+	rand.Seed(time.Now().UnixNano())
+	shuffle(cidades)
 
-	// id, latitude, longitude := convertLine(line)
-
-	// for err == nil {
-	// 	fmt.Println(id, latitude, longitude)
-	// 	line, err = Readln(fileCities)
-	// }
+	return cidades
 }
 
-func convertLine(line string) (id int, latitude float64, longitude float64) {
+func shuffle(a []cidade) {
+	for i := range a {
+		j := rand.Intn(i + 1)
+		a[i], a[j] = a[j], a[i]
+	}
+}
+
+func addCity(cidades []cidade, line string) []cidade {
+	id, latitude, longitude := convertLineOfCitye(line)
+
+	cidade := cidade{id: id, latitude: latitude, longitude: longitude}
+	cidades = append(cidades, cidade)
+	return cidades
+}
+
+func convertLineOfCitye(line string) (id int, latitude float64, longitude float64) {
 
 	idString := strings.Split(line, " ")[0]
 	latitudeString := strings.Split(line, " ")[1]
@@ -64,7 +94,7 @@ func readCity() *bufio.Reader {
 	return bufio.NewReader(fileCities)
 }
 
-func Readln(r *bufio.Reader) (string, error) {
+func readLine(r *bufio.Reader) (string, error) {
 	var (
 		isPrefix bool  = true
 		err      error = nil
