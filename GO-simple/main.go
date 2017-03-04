@@ -1,59 +1,78 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"math"
+	"os"
+	"strconv"
+	"strings"
 )
 
+type cidade struct {
+	id                  int
+	latitude, longitude float64
+}
+
 func main() {
-
-	// var cidades = [][]int{{1, 4}, {1, 1}, {3, 4}, {4, 2}, {4, 6}, {5, 4}, {7, 2}, {7, 6}}
-
-	cidades := [][][]int{
-		{{40, 10}, {2, 6}, {3, 4}, {55, 67}, {4, 6}, {5, 4}, {7, 2}, {7, 6}},
-		{{55, 67}, {4, 6}, {5, 4}, {40, 10}, {2, 6}, {3, 4}, {7, 2}, {7, 6}},
-		{{55, 67}, {4, 6}, {5, 4}, {7, 2}, {7, 6}, {40, 10}, {2, 6}, {3, 4}},
-		{{55, 67}, {4, 6}, {5, 4}, {7, 2}, {40, 10}, {2, 6}, {3, 4}, {7, 6}},
-		{{3, 4}, {55, 67}, {4, 6}, {5, 4}, {7, 2}, {7, 6}, {40, 10}, {2, 6}},
-		{{3, 4}, {55, 67}, {4, 6}, {40, 10}, {2, 6}, {5, 4}, {7, 2}, {7, 6}},
-		{{4, 6}, {5, 4}, {7, 2}, {7, 6}, {40, 10}, {2, 6}, {3, 4}, {55, 67}}}
-
-	fitness(cidades)
-
+	fileCities := readCity()
+	createArrayOfCities(fileCities)
 }
 
-func fitness(rota [][][]int) {
+func createArrayOfCities(fileCities *bufio.Reader) {
 
-	for index := 0; index < 20000; index++ {
-		for _, valor := range rota {
-			go calcularFitness(valor)
-		}
+	line, err := Readln(fileCities)
+	var basenameOpts = []cidade{}
+	for err == nil {
+		id, latitude, longitude := convertLine(line)
+
+		cidade := cidade{id: id, latitude: latitude, longitude: longitude}
+
+		basenameOpts = append(basenameOpts, cidade)
+
+		line, err = Readln(fileCities)
 	}
 
+	fmt.Println(basenameOpts[0])
+
+	// id, latitude, longitude := convertLine(line)
+
+	// for err == nil {
+	// 	fmt.Println(id, latitude, longitude)
+	// 	line, err = Readln(fileCities)
+	// }
 }
 
-func calcularFitness(rota [][]int) {
+func convertLine(line string) (id int, latitude float64, longitude float64) {
 
-	var length = len(rota) - 2
-	var fitness float64
-	for index := 0; index <= length; index++ {
-		fitness += calcularDistancia(rota[index], rota[index+1])
+	idString := strings.Split(line, " ")[0]
+	latitudeString := strings.Split(line, " ")[1]
+	longitudeString := strings.Split(line, " ")[2]
+
+	id, _ = strconv.Atoi(idString)
+	latitude, _ = strconv.ParseFloat(latitudeString, 64)
+	longitude, _ = strconv.ParseFloat(longitudeString, 64)
+
+	return id, latitude, longitude
+}
+
+func readCity() *bufio.Reader {
+	fileCities, err := os.Open("./cidades.txt")
+	if err != nil {
+		fmt.Printf("Erro ao abrir o Arquivo: %v\n", err)
+		os.Exit(1)
 	}
-	fitness += calcularDistancia(rota[length+1], rota[0])
-
-	fmt.Print("Total ", fitness, "\n")
-
+	return bufio.NewReader(fileCities)
 }
 
-func calcularDistancia(cidade1 []int, cidade2 []int) float64 {
-	return math.Sqrt(math.Pow(float64((cidade2[0])-(cidade1[0])), 2) + math.Pow(float64((cidade2[1])-(cidade1[1])), 2))
+func Readln(r *bufio.Reader) (string, error) {
+	var (
+		isPrefix bool  = true
+		err      error = nil
+		line, ln []byte
+	)
+	for isPrefix && err == nil {
+		line, isPrefix, err = r.ReadLine()
+		ln = append(ln, line...)
+	}
+	return string(ln), err
 }
-
-// c := [][][]int{
-// 	{{2, 2}, {2, 6}, {3, 4}, {4, 2}, {4, 6}, {5, 4}, {7, 2}, {7, 6}},
-// 	{{4, 2}, {4, 6}, {5, 4}, {2, 2}, {2, 6}, {3, 4}, {7, 2}, {7, 6}},
-// 	{{4, 2}, {4, 6}, {5, 4}, {7, 2}, {7, 6}, {2, 2}, {2, 6}, {3, 4}},
-// 	{{4, 2}, {4, 6}, {5, 4}, {7, 2}, {2, 2}, {2, 6}, {3, 4}, {7, 6}},
-// 	{{3, 4}, {4, 2}, {4, 6}, {5, 4}, {7, 2}, {7, 6}, {2, 2}, {2, 6}},
-// 	{{4, 6}, {5, 4}, {7, 2}, {7, 6}, {2, 2}, {2, 6}, {3, 4}, {4, 2}},
-// 	{{4, 2}, {4, 6}, {5, 4}, {7, 2}, {7, 6}, {2, 2}, {2, 6}, {3, 4}}}
