@@ -16,23 +16,42 @@ type cidade struct {
 	latitude, longitude float64
 }
 
+type geracao struct {
+	id      int
+	fitness float64
+	cidades []cidade
+}
+
 func main() {
 	fileCities := readCity()
 	cidades := getArrayOfCities(fileCities)
+	primeiraGeracao := []geracao{}
+	var melhor = 1000000000.0
 
-	calculateFitness(cidades)
+	for index := 0; index < 1000; index++ {
+		individuo := shuffle(cidades)
+		fitness := calculateFitness(individuo)
+		primeiraGeracao = append(primeiraGeracao, geracao{id: index, fitness: fitness, cidades: individuo})
+		fmt.Println(primeiraGeracao[index].fitness)
+
+		if melhor > primeiraGeracao[index].fitness {
+			melhor = primeiraGeracao[index].fitness
+		}
+	}
+	fmt.Println(primeiraGeracao[999])
+	fmt.Println("O Melhor individuo encontrado: ", melhor)
 }
 
-func calculateFitness(cidades []cidade) {
+func calculateFitness(cidades []cidade) float64 {
 
 	var length = len(cidades) - 2
 	var fitness float64
+
 	for index := 0; index <= length; index++ {
 		fitness += calculateDistanceCoordenate(cidades[index], cidades[index+1])
 	}
 	fitness += calculateDistanceCoordenate(cidades[length+1], cidades[0])
-
-	fmt.Print("Total ", fitness, "\n")
+	return fitness
 
 }
 
@@ -52,16 +71,17 @@ func getArrayOfCities(fileCities *bufio.Reader) []cidade {
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	shuffle(cidades)
+	cidades = shuffle(cidades)
 
 	return cidades
 }
 
-func shuffle(a []cidade) {
-	for i := range a {
-		j := rand.Intn(i + 1)
-		a[i], a[j] = a[j], a[i]
+func shuffle(cidades []cidade) []cidade {
+	for index := range cidades {
+		rand := rand.Intn(index + 1)
+		cidades[index], cidades[rand] = cidades[rand], cidades[index]
 	}
+	return cidades
 }
 
 func addCity(cidades []cidade, line string) []cidade {
@@ -106,3 +126,9 @@ func readLine(r *bufio.Reader) (string, error) {
 	}
 	return string(ln), err
 }
+
+// func main() {
+// 	fileCities := readCity()
+// 	cidades := getArrayOfCities(fileCities)
+// 	calculateFitness(cidades)
+// }
