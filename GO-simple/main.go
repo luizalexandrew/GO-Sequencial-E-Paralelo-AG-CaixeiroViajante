@@ -26,7 +26,7 @@ type chromosome struct {
 
 func main() {
 
-	if len(os.Args) > 4 {
+	if len(os.Args) > 5 {
 		fileDirectory, populationSize, generations, crossingRate, mutation := readArgs()
 		searchInstance(fileDirectory, populationSize, generations, crossingRate, mutation)
 
@@ -36,7 +36,7 @@ func main() {
 	}
 }
 
-func searchInstance(fileDirectory, populationSizeString, generations, crossingRate, mutation string) {
+func searchInstance(fileDirectory, populationSizeString, generationsString, crossingRateString, mutationString string) {
 	fileCities := readCity(fileDirectory)
 	cities := getArrayOfCities(fileCities)
 
@@ -45,17 +45,34 @@ func searchInstance(fileDirectory, populationSizeString, generations, crossingRa
 		fmt.Println("O tamanho da polulação é inválido\n", err)
 		os.Exit(1)
 	}
+	generations, err := strconv.Atoi(generationsString)
+	if err != nil {
+		fmt.Println("O valor das gerações é inválido\n", err)
+		os.Exit(1)
+	}
+	crossingRate, err := strconv.ParseFloat(crossingRateString, 64)
+	if err != nil {
+		fmt.Println("O valor das cruzamentos é inválido\n", err)
+		os.Exit(1)
+	}
+	mutation, err := strconv.ParseFloat(mutationString, 64)
+	if err != nil {
+		fmt.Println("O valor das mutações é inválido\n", err)
+		os.Exit(1)
+	}
 
 	primeiraGeracao := createInitialPopulationWithFitness(cities, populationSize)
 
 	sortutil.AscByField(primeiraGeracao, "fitness")
-	natutalSelection(populationSize, primeiraGeracao)
+	// natutalSelection(primeiraGeracao, populationSize, generations, crossingRate, mutation)
 }
 
-func natutalSelection(populationSize int, geracao []chromosome) {
-	var selectedIndividuals []chromosome
+func natutalSelection(geracao []chromosome, populationSize int, generations int, crossingRate float64, mutation float64) {
+	// var selectedIndividuals []chromosome
 
-	selectedIndividuals = elitism(populationSize, geracao)
+	// selectedIndividuals = elitism(populationSize, geracao)
+
+	// crossOver(selectedIndividuals)
 
 }
 
@@ -85,7 +102,8 @@ func createInitialPopulationWithFitness(cities []city, populationSize int) []chr
 	return primeiraGeracao
 }
 
-func crossOver() {
+func crossOver(geracao []chromosome) {
+
 	//OX Crossover - CrossOver Uniforme
 	//cruzamento Uniforme Baseado em Ordem
 }
