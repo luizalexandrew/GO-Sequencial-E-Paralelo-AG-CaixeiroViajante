@@ -32,7 +32,7 @@ func main() {
 
 	} else {
 		fmt.Println("Passe os argumentos para executar o experimento")
-		fmt.Println("ARGS: fileDirectory, populationSize, generations, mutation")
+		fmt.Println("ARGS: fileDirectory, populationSize, generations, crossingRate, mutation")
 	}
 }
 
@@ -60,11 +60,21 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, cros
 		fmt.Println("O valor das mutações é inválido\n", err)
 		os.Exit(1)
 	}
-
-	primeiraGeracao := createInitialPopulationWithFitness(cities, populationSize)
+	var primeiraGeracao []chromosome
+	primeiraGeracao = createInitialPopulationWithFitness(cities, populationSize)
 
 	sortutil.AscByField(primeiraGeracao, "fitness")
 	// natutalSelection(primeiraGeracao, populationSize, generations, crossingRate, mutation)
+	fmt.Println(populationSize, generations, crossingRate, mutation)
+	fmt.Println(mutate(primeiraGeracao[0], populationSize, mutation).fitness)
+
+	for index := 0; index < 100; index++ {
+		birr := mutate(primeiraGeracao[0], populationSize, mutation)
+		if primeiraGeracao[0].fitness > birr.fitness {
+			fmt.Println("Finalmente melhoresi", birr.fitness)
+		}
+
+	}
 }
 
 func natutalSelection(geracao []chromosome, populationSize int, generations int, crossingRate float64, mutation float64) {
@@ -74,6 +84,25 @@ func natutalSelection(geracao []chromosome, populationSize int, generations int,
 
 	// crossOver(selectedIndividuals)
 
+}
+
+func mutate(gene chromosome, populationSize int, motation float64) chromosome {
+	if motation == 0 {
+		return gene
+	}
+
+	for rand.Float64() < motation {
+		position1 := rand.Intn(populationSize)
+		position2 := rand.Intn(populationSize)
+
+		aux := gene.cities[position1]
+		gene.cities[position1] = gene.cities[position2]
+		gene.cities[position2] = aux
+
+		gene.fitness = calculateFitness(gene.cities)
+	}
+
+	return gene
 }
 
 func elitism(populationSize int, geracao []chromosome) []chromosome {
