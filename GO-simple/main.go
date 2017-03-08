@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -24,19 +25,21 @@ type chromosome struct {
 	cities  []city
 }
 
+type set map[interface{}]bool
+
 func main() {
 
-	if len(os.Args) > 5 {
-		fileDirectory, populationSize, generations, crossingRate, mutation := readArgs()
-		searchInstance(fileDirectory, populationSize, generations, crossingRate, mutation)
+	if len(os.Args) > 4 {
+		fileDirectory, populationSize, generations, mutation := readArgs()
+		searchInstance(fileDirectory, populationSize, generations, mutation)
 
 	} else {
 		fmt.Println("Passe os argumentos para executar o experimento")
-		fmt.Println("ARGS: fileDirectory, populationSize, generations, crossingRate, mutation")
+		fmt.Println("ARGS: fileDirectory, populationSize, generations, mutation")
 	}
 }
 
-func searchInstance(fileDirectory, populationSizeString, generationsString, crossingRateString, mutationString string) {
+func searchInstance(fileDirectory, populationSizeString, generationsString, mutationString string) {
 	fileCities := readCity(fileDirectory)
 	cities := getArrayOfCities(fileCities)
 
@@ -50,40 +53,92 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, cros
 		fmt.Println("O valor das gerações é inválido\n", err)
 		os.Exit(1)
 	}
-	crossingRate, err := strconv.ParseFloat(crossingRateString, 64)
-	if err != nil {
-		fmt.Println("O valor das cruzamentos é inválido\n", err)
-		os.Exit(1)
-	}
 	mutation, err := strconv.ParseFloat(mutationString, 64)
 	if err != nil {
 		fmt.Println("O valor das mutações é inválido\n", err)
 		os.Exit(1)
 	}
-	var primeiraGeracao []chromosome
-	primeiraGeracao = createInitialPopulationWithFitness(cities, populationSize)
+	var population []chromosome
+	population = createInitialPopulationWithFitness(cities, populationSize)
 
-	sortutil.AscByField(primeiraGeracao, "fitness")
-	// natutalSelection(primeiraGeracao, populationSize, generations, crossingRate, mutation)
-	fmt.Println(populationSize, generations, crossingRate, mutation)
-	fmt.Println(mutate(primeiraGeracao[0], populationSize, mutation).fitness)
+	for index := 0; index < generations; index++ {
+		sortutil.AscByField(population, "fitness")
 
-	for index := 0; index < 100; index++ {
-		birr := mutate(primeiraGeracao[0], populationSize, mutation)
-		if primeiraGeracao[0].fitness > birr.fitness {
-			fmt.Println("Finalmente melhoresi", birr.fitness)
+		population := elitism(populationSize, population)
+		lenPopulationSelecionada := len(population)
+
+		var percent = (populationSize) * 75 / 100
+		if percent%2 != 0 {
+			percent--
+		}
+		fmt.Println(population[0].fitness)
+		for len(population) < populationSize {
+
+			var indexes = randomInts(2, 0, populationSize, makeRandomNumberGenerator())
+			sort.Ints(indexes)
+
+			valor1 := ox(population[rand.Intn(lenPopulationSelecionada)].cities, population[rand.Intn(lenPopulationSelecionada)].cities, indexes[0], indexes[1])
+
+			population = append(population, mutate(createChromosome(valor1), populationSize, mutation))
+
 		}
 
+		// for index2, valor := range population {
+		// 	fmt.Println(index, index2, valor.fitness)
+		// 	population = append(population, valor)
+		// }
+
 	}
+
 }
 
-func natutalSelection(geracao []chromosome, populationSize int, generations int, crossingRate float64, mutation float64) {
-	// var selectedIndividuals []chromosome
+func ox(p1, p2 []city, a, b int) []city {
+	var (
+		n  = len(p1)
+		o1 = make([]city, n)
+		o2 = make([]city, n)
+	)
+	// Copy part of the first parent's genome onto the first offspring
+	copy(o1[a:b], p1[a:b])
+	copy(o2[a:b], p2[a:b])
+	// Create lookup maps to quickly see if a gene has been copied from a parent or not
+	var o1Lookup, o2Lookup = make(set), make(set)
+	for i := a; i < b; i++ {
+		o1Lookup[p1[i]] = true
+		o2Lookup[p2[i]] = true
+	}
+	// Keep two indicators to know where to fill the offsprings
+	var j1, j2 = b, b
+	for i := b; i < b+n; i++ {
+		var k = i % n
+		if !o1Lookup[p2[k]] {
+			o1[j1%n] = p2[k]
+			j1++
+		}
+		if !o2Lookup[p1[k]] {
+			o2[j2%n] = p1[k]
+			j2++
+		}
+	}
+	return o1
+}
 
-	// selectedIndividuals = elitism(populationSize, geracao)
+func randomInts(k, min, max int, rng *rand.Rand) (ints []int) {
+	ints = make([]int, k)
+	for i := 0; i < k; i++ {
+		ints[i] = i + min
+	}
+	for i := k; i < max-min; i++ {
+		var j = rng.Intn(i + 1)
+		if j < k {
+			ints[j] = i + min
+		}
+	}
+	return
+}
 
-	// crossOver(selectedIndividuals)
-
+func makeRandomNumberGenerator() *rand.Rand {
+	return rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 
 func mutate(gene chromosome, populationSize int, motation float64) chromosome {
@@ -125,27 +180,26 @@ func createInitialPopulationWithFitness(cities []city, populationSize int) []chr
 	primeiraGeracao := []chromosome{}
 
 	for index := 0; index < populationSize; index++ {
-		primeiraGeracao = append(primeiraGeracao, createChromosomeOfInitialPopulation(cities, index))
+		primeiraGeracao = append(primeiraGeracao, createChromosomeOfInitialPopulation(cities))
 	}
 
 	return primeiraGeracao
 }
 
-func crossOver(geracao []chromosome) {
-
-	//OX Crossover - CrossOver Uniforme
-	//cruzamento Uniforme Baseado em Ordem
-}
-
-func createChromosomeOfInitialPopulation(cities []city, index int) chromosome {
+func createChromosomeOfInitialPopulation(cities []city) chromosome {
 	individuo := shuffle(cities)
 	fitness := calculateFitness(shuffle(cities))
-	return chromosome{id: index, fitness: fitness, cities: individuo}
+	return chromosome{fitness: fitness, cities: individuo}
 }
 
-func readArgs() (string, string, string, string, string) {
+func createChromosome(cities []city) chromosome {
+	fitness := calculateFitness(cities)
+	return chromosome{fitness: fitness, cities: cities}
+}
+
+func readArgs() (string, string, string, string) {
 	//fileDirectory populationSize generations TaxadeCruzamento crossingRate mutation
-	return os.Args[1], os.Args[2], os.Args[3], os.Args[4], os.Args[5]
+	return os.Args[1], os.Args[2], os.Args[3], os.Args[4]
 }
 
 func calculateFitness(cities []city) float64 {
