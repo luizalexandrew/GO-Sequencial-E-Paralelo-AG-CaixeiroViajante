@@ -14,6 +14,8 @@ import (
 	"github.com/pmylund/sortutil"
 )
 
+var filhos int64
+
 type city struct {
 	id                  int
 	latitude, longitude float64
@@ -71,9 +73,9 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 		if percent%2 != 0 {
 			percent--
 		}
-		fmt.Println(population[0].fitness)
-		for len(population) < populationSize {
 
+		for len(population) < populationSize {
+			fmt.Println(filhos)
 			var indexes = randomInts(2, 0, populationSize, makeRandomNumberGenerator())
 			sort.Ints(indexes)
 
@@ -98,16 +100,16 @@ func ox(p1, p2 []city, a, b int) []city {
 		o1 = make([]city, n)
 		o2 = make([]city, n)
 	)
-	// Copy part of the first parent's genome onto the first offspring
+
 	copy(o1[a:b], p1[a:b])
 	copy(o2[a:b], p2[a:b])
-	// Create lookup maps to quickly see if a gene has been copied from a parent or not
+
 	var o1Lookup, o2Lookup = make(set), make(set)
 	for i := a; i < b; i++ {
 		o1Lookup[p1[i]] = true
 		o2Lookup[p2[i]] = true
 	}
-	// Keep two indicators to know where to fill the offsprings
+
 	var j1, j2 = b, b
 	for i := b; i < b+n; i++ {
 		var k = i % n
@@ -187,12 +189,14 @@ func createInitialPopulationWithFitness(cities []city, populationSize int) []chr
 }
 
 func createChromosomeOfInitialPopulation(cities []city) chromosome {
+	filhos++
 	individuo := shuffle(cities)
 	fitness := calculateFitness(shuffle(cities))
 	return chromosome{fitness: fitness, cities: individuo}
 }
 
 func createChromosome(cities []city) chromosome {
+	filhos++
 	fitness := calculateFitness(cities)
 	return chromosome{fitness: fitness, cities: cities}
 }
