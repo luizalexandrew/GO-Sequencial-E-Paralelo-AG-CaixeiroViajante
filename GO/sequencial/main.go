@@ -14,8 +14,6 @@ import (
 	"github.com/pmylund/sortutil"
 )
 
-var filhos int64
-
 type city struct {
 	id                  int
 	latitude, longitude float64
@@ -66,6 +64,8 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 	for index := 0; index < generations; index++ {
 		sortutil.AscByField(population, "fitness")
 
+		fmt.Println(population[0].fitness)
+
 		population := elitism(populationSize, population)
 		lenPopulationSelecionada := len(population)
 
@@ -75,7 +75,7 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 		}
 
 		for len(population) < populationSize {
-			fmt.Println(filhos)
+
 			var indexes = randomInts(2, 0, populationSize, makeRandomNumberGenerator())
 			sort.Ints(indexes)
 
@@ -84,11 +84,6 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 			population = append(population, mutate(createChromosome(valor1), populationSize, mutation))
 
 		}
-
-		// for index2, valor := range population {
-		// 	fmt.Println(index, index2, valor.fitness)
-		// 	population = append(population, valor)
-		// }
 
 	}
 
@@ -189,20 +184,17 @@ func createInitialPopulationWithFitness(cities []city, populationSize int) []chr
 }
 
 func createChromosomeOfInitialPopulation(cities []city) chromosome {
-	filhos++
 	individuo := shuffle(cities)
 	fitness := calculateFitness(shuffle(cities))
 	return chromosome{fitness: fitness, cities: individuo}
 }
 
 func createChromosome(cities []city) chromosome {
-	filhos++
 	fitness := calculateFitness(cities)
 	return chromosome{fitness: fitness, cities: cities}
 }
 
 func readArgs() (string, string, string, string) {
-	//fileDirectory populationSize generations TaxadeCruzamento crossingRate mutation
 	return os.Args[1], os.Args[2], os.Args[3], os.Args[4]
 }
 

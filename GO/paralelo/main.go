@@ -72,7 +72,6 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 		elitismCut++
 	}
 
-	//Criando a população inicial
 	var population []chromosome
 	populationChan := make(chan chromosome, populationSize)
 
@@ -87,6 +86,8 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 	for index := 0; index < generations; index++ {
 		sortutil.AscByField(population, "fitness")
 
+		fmt.Println(population[0].fitness)
+
 		population := elitism(populationSize, elitismCut, population)
 
 		maxFilhos := populationSize - len(population)
@@ -99,10 +100,6 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 			sort.Ints(indexes)
 
 			go ox(newPopulationChan, population[rand.Intn(elitismCut)].cities, population[rand.Intn(elitismCut-1)].cities, indexes[0], indexes[1])
-
-			// fmt.Println(newGen)
-
-			// population = append(population, mutate(createChromosome(newGen), populationSize, mutation))
 
 		}
 
@@ -118,8 +115,6 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 	}
 
 }
-
-//----------------------Cruzamento-------------------------------
 
 func ox(newGen chan []city, pai1, pai2 []city, corte1, corte2b int) {
 	var (
@@ -166,13 +161,10 @@ func mutate(gene chromosome, populationSize int, motation float64) chromosome {
 		gene.cities[position1] = gene.cities[position2]
 		gene.cities[position2] = aux
 
-		// gene.fitness = calculateFitness(gene.cities)
 	}
 
 	return gene
 }
-
-//---------------------------util---------------------------
 
 func makeRandomNumberGenerator() *rand.Rand {
 	return rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -222,7 +214,7 @@ func calculateFitness(calculateFitnessChan chan float64, cities []city) {
 	if !math.IsNaN(fitness) {
 		calculateFitnessChan <- fitness
 	} else {
-		calculateFitness(calculateFitnessChan, cities)
+		calculateFitnessChan <- 99999999
 	}
 }
 
@@ -231,8 +223,6 @@ func calculateDistanceCoordenate(cidadeOrigem, cidadeDestino city) float64 {
 	return 6371 * math.Acos(math.Cos(math.Pi*(90-cidadeDestino.latitude)/180)*math.Cos((90-cidadeOrigem.latitude)*math.Pi/180)+math.Sin((90-cidadeDestino.latitude)*math.Pi/180)*math.Sin((90-cidadeOrigem.latitude)*math.Pi/180)*math.Cos((cidadeOrigem.longitude-cidadeDestino.longitude)*math.Pi/180))
 
 }
-
-//---------------------------READ FILE
 
 func readCity(fileDirectory string) *bufio.Reader {
 	fileCities, err := os.Open(fileDirectory)
