@@ -64,8 +64,6 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 	for index := 0; index < generations; index++ {
 		sortutil.AscByField(population, "fitness")
 
-		fmt.Println(population[0].fitness)
-
 		population := elitism(populationSize, population)
 		lenPopulationSelecionada := len(population)
 
@@ -86,6 +84,8 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 		}
 
 	}
+
+	fmt.Println(population[0].fitness)
 
 }
 
