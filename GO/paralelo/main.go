@@ -86,8 +86,6 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 	for index := 0; index < generations; index++ {
 		sortutil.AscByField(population, "fitness")
 
-		// fmt.Println(population[0].fitness)
-
 		population := elitism(populationSize, elitismCut, population)
 
 		maxFilhos := populationSize - len(population)
@@ -113,6 +111,8 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 		}
 
 	}
+
+	fmt.Println(population[0].fitness)
 
 }
 
@@ -208,18 +208,16 @@ func createChromosomeOfInitialPopulation(populationChan chan chromosome, cities 
 
 func calculateFitness(calculateFitnessChan chan float64, cities []city) {
 
-	var length = len(cities) - 2
+	var length = len(cities) - 1
 	var fitness float64
 
-	for index := 0; index <= length; index++ {
+	for index := 0; index < length; index++ {
 		fitness += calculateDistanceCoordenate(cities[index], cities[index+1])
 	}
-	fitness += calculateDistanceCoordenate(cities[length+1], cities[0])
-	if !math.IsNaN(fitness) {
-		calculateFitnessChan <- fitness
-	} else {
-		calculateFitnessChan <- 99999999
-	}
+	fitness += calculateDistanceCoordenate(cities[length], cities[0])
+
+	calculateFitnessChan <- fitness
+
 }
 
 func calculateDistanceCoordenate(cidadeOrigem, cidadeDestino city) float64 {

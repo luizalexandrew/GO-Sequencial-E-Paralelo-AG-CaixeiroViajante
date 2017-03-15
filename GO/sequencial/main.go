@@ -184,7 +184,10 @@ func createInitialPopulationWithFitness(cities []city, populationSize int) []chr
 }
 
 func createChromosomeOfInitialPopulation(cities []city) chromosome {
-	individuo := shuffle(cities)
+	tmp := make([]city, len(cities))
+	copy(tmp, cities)
+
+	individuo := shuffle(tmp)
 	fitness := calculateFitness(shuffle(cities))
 	return chromosome{fitness: fitness, cities: individuo}
 }
@@ -200,13 +203,13 @@ func readArgs() (string, string, string, string) {
 
 func calculateFitness(cities []city) float64 {
 
-	var length = len(cities) - 2
+	var length = len(cities) - 1
 	var fitness float64
 
-	for index := 0; index <= length; index++ {
+	for index := 0; index < length; index++ {
 		fitness += calculateDistanceCoordenate(cities[index], cities[index+1])
 	}
-	fitness += calculateDistanceCoordenate(cities[length+1], cities[0])
+	fitness += calculateDistanceCoordenate(cities[length], cities[0])
 	return fitness
 
 }
