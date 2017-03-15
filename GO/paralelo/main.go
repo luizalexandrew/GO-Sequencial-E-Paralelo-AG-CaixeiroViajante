@@ -86,7 +86,7 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 	for index := 0; index < generations; index++ {
 		sortutil.AscByField(population, "fitness")
 
-		fmt.Println(population[0].fitness)
+		// fmt.Println(population[0].fitness)
 
 		population := elitism(populationSize, elitismCut, population)
 
@@ -196,7 +196,11 @@ func createChromosome(chos chan chromosome, cities []city) {
 }
 
 func createChromosomeOfInitialPopulation(populationChan chan chromosome, cities []city) {
-	individuo := shuffle(cities)
+
+	tmp := make([]city, len(cities))
+	copy(tmp, cities)
+
+	individuo := shuffle(tmp)
 	calculateFitnessChan := make(chan float64)
 	go calculateFitness(calculateFitnessChan, individuo)
 	populationChan <- chromosome{fitness: <-calculateFitnessChan, cities: individuo}
