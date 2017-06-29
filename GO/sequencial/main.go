@@ -82,7 +82,7 @@ func searchInstance(fileDirectory, populationSizeString, generationsString, muta
 			population = append(population, mutate(createChromosome(valor1), populationSize, mutation))
 
 		}
-
+		fmt.Println(population[0].fitness)
 	}
 
 	fmt.Println(population[0].fitness)
